@@ -207,7 +207,7 @@ class InferBoxmotTrackingFactory(dataprocess.CTaskFactory):
         self.info.documentation_link = ""
 
         # Code source repository
-        self.info.repository = ""
+        self.info.repository = "https://github.com/Ikomia-hub/infer_boxmot_tracking"
         self.info.original_repository = "https://github.com/mikel-brostrom"
 
         # Keywords used for search

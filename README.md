@@ -90,7 +90,7 @@ Ikomia Studio offers a friendly UI with the same features as the API.
 
 - **tracker** (str) - Default 'occluboost': Tracking algorithm to use. Available values are 'occluboost', 'botsort', 'boosttrack', 'strongsort', 'deepocsort', 'bytetrack', 'hybridsort', 'ocsort' and 'sfsort'.
 - **reid** (str) - Default 'osnet_x0_25_msmt17': Re-identification model used by trackers that support ReID.
-- **config** (str) - Default 'None': Optional path to a custom tracker configuration file in YAML format.
+- **config** (str) - Default '': Optional path to a custom tracker configuration file in YAML format.
 - **categories** (str) - Default 'all': Categories of objects you want to track. Use a comma separated string to set multiple categories (ex: "dog,person,car").
 - **cuda** (bool) - Default depends on CUDA availability: Enable CUDA acceleration when available.
 - **half** (bool) - Default depends on CUDA availability: Enable half precision when CUDA is available.
