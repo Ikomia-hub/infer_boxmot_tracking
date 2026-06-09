@@ -74,11 +74,7 @@ def compute_color_for_track(track_id):
     return color
 
 
-def fill_tracks_output(input_img, input_type, objs_to_track, ik_output, tracks):
-    if isinstance(ik_output, CInstanceSegmentationIO):
-        h, w = np.shape(input_img)[:2]
-        ik_output.init("Boxmot tracking", 0, w, h)
-
+def fill_tracks_output(input_type, objs_to_track, ik_output, tracks):
     ids = tracks[:, 4].astype('int')  # float64 to int
     indices = tracks[:, 7].astype('int')  # float64 to int
 

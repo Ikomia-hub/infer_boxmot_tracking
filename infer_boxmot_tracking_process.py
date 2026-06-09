@@ -5,6 +5,7 @@ import copy
 import os
 
 import torch
+import numpy as np
 
 from ikomia import core, dataprocess
 from ikomia.utils import strtobool
@@ -59,7 +60,7 @@ class InferBoxmotTrackingParam(core.CWorkflowTaskParam):
             "half": str(self.half),
             "tracker": self.tracker,
             "reid": self.reid,
-            "config": str(self.config),
+            "config": self.config,
             "categories": self.categories,
         }
         return params
@@ -114,29 +115,25 @@ class InferBoxmotTracking(dataprocess.C2dImageTask):
             if candidate_input.is_data_available():
                 return candidate_input
 
-        return self.get_input(1)
+        return None
 
-    def _update_output_type(self, input_to_track):
+    def _update_output_type(self, input_img, input_to_track):
         input_type = type(input_to_track)
         if not isinstance(self.get_output(1), input_type):
             self.remove_output(1)
             self.add_output(input_type())
 
-    def _init_empty_tracking_output(self, input_type, img_in):
-        output = self.get_output(1)
-        if input_type == dataprocess.CInstanceSegmentationIO:
-            h, w = img_in.shape[:2]
-            output.init("Boxmot tracking", 0, w, h)
-        else:
-            output.init("Boxmot tracking", 0)
+            output = self.get_output(1)
+            if isinstance(output, dataprocess.CInstanceSegmentationIO):
+                h, w = np.shape(input_img)[:2]
+                output.init("Boxmot tracking", 0, w, h)
+            else:
+                output.init("Boxmot tracking", 0)
 
     def run(self):
         """Main function and entry point for algorithm execution."""
         # Call begin_task_run() for initialization
         self.begin_task_run()
-
-        input_to_track = self._get_input_to_track()
-        self._update_output_type(input_to_track)
 
         # Get parameters:
         param = self.get_param_object()
@@ -154,24 +151,27 @@ class InferBoxmotTracking(dataprocess.C2dImageTask):
             )
             param.update = False
 
+        input_to_track = self._get_input_to_track()
+        if input_to_track is None:
+            self.end()
+            return
+
         img_in = self.get_input(0).get_image()
+        self._update_output_type(img_in, input_to_track)
+
         objs_to_track = filter_objects(input_to_track, param.categories)
         if not objs_to_track:
-            self._init_empty_tracking_output(type(input_to_track), img_in)
-            self.forward_input_image(0, 0)
-            self.emit_step_progress()
-            self.end_task_run()
+            self.end()
             return
 
         track_input = convert_objects_for_tracking(objs_to_track)
         tracks = self.tracker.update(track_input, img_in)
-        fill_tracks_output(img_in, type(input_to_track), objs_to_track, self.get_output(1), tracks)
+        fill_tracks_output(type(input_to_track), objs_to_track, self.get_output(1), tracks)
+        self.end()
+
+    def end(self):
         self.forward_input_image(0, 0)
-
-        # Step progress bar (Ikomia Studio):
         self.emit_step_progress()
-
-        # Call end_task_run() to finalize process
         self.end_task_run()
 
 
