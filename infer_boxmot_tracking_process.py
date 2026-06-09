@@ -22,7 +22,7 @@ class InferBoxmotTrackingParam(core.CWorkflowTaskParam):
         core.CWorkflowTaskParam.__init__(self)
         self.tracker = "occluboost"
         self.reid = "osnet_x0_25_msmt17"
-        self.config = None
+        self.config = ""
         self.categories = "all"
         self.cuda = torch.cuda.is_available()
         self.half = torch.cuda.is_available()
@@ -33,6 +33,14 @@ class InferBoxmotTrackingParam(core.CWorkflowTaskParam):
         Set parameters values from Ikomia Studio or API.
         Parameters values are stored as string and accessible like a python dict.
         """
+        self.update = (
+            strtobool(params["update"]) or
+            self.cuda != strtobool(params["cuda"]) or
+            self.half != strtobool(params["half"]) or
+            self.tracker != params["tracker"] or
+            self.reid != params["reid"] or
+            self.config != params["config"]
+        )
         self.cuda = strtobool(params["cuda"])
         self.half = strtobool(params["half"])
         self.tracker = params["tracker"]
@@ -46,10 +54,12 @@ class InferBoxmotTrackingParam(core.CWorkflowTaskParam):
         Create the specific dict structure (key-value as string).
         """
         params = {
+            "update": str(self.update),
             "cuda": str(self.cuda),
+            "half": str(self.half),
             "tracker": self.tracker,
             "reid": self.reid,
-            "config": self.config,
+            "config": str(self.config),
             "categories": self.categories,
         }
         return params
@@ -133,7 +143,7 @@ class InferBoxmotTracking(dataprocess.C2dImageTask):
             self.tracker = BoxmotTracker(
                 tracker_name=param.tracker,
                 reid_weight=os.path.join(self.model_folder, param.reid + ".pt"),
-                config_path=param.config,
+                config_path=param.config or None,
                 device=device,
                 half=half
             )

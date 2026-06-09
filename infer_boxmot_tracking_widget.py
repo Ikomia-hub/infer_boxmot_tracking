@@ -47,7 +47,7 @@ class InferBoxmotTrackingWidget(core.CWorkflowTaskWidget):
         self.browse_config = pyqtutils.append_browse_file(
             self.grid_layout,
             label="Tracker config",
-            path= "" if self.parameters.config is None else self.parameters.config,
+            path=self.parameters.config,
             file_filter="*.yaml",
         )
 
@@ -83,7 +83,7 @@ class InferBoxmotTrackingWidget(core.CWorkflowTaskWidget):
         self.parameters.tracker = self.combo_tracker.currentText()
         self.parameters.reid = self.combo_reid.currentText()
         self.parameters.categories = self.edit_categories.text()
-        self.parameters.config = None if not self.browse_config.path else self.browse_config.path
+        self.parameters.config = self.browse_config.path
 
         # Send signal to launch the algorithm main function
         self.emit_apply(self.parameters)
